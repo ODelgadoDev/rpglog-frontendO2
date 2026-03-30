@@ -1,0 +1,237 @@
+/*
+ * globals.css — Estilos globales y variables de diseño
+ * ─────────────────────────────────────────────────────
+ * Reset CSS, importación de fuentes y variables de toda la app.
+ *
+ * Fuentes:
+ *   --pixel ('Press Start 2P') — fuente pixel art para títulos, labels y botones
+ *   --vt    ('VT323')          — fuente monospace retro para textos secundarios
+ *
+ * Variables de color:
+ *   --bg, --panel, --panel2   — fondos oscuros escalonados
+ *   --border, --border2       — bordes sutiles
+ *   --gold, --gold-dim        — dorado principal y oscuro
+ *   --red, --green, --blue, --purple, --orange — colores de stats y feedback
+ *   --text, --text-dim        — texto principal y secundario (contraste WCAG AA)
+ *
+ * Escala de fuentes (mínimos accesibles para --pixel):
+ *   --fs-micro  0.40rem — solo decorativo
+ *   --fs-tiny   0.46rem — badges secundarios
+ *   --fs-small  0.52rem — etiquetas
+ *   --fs-base   0.60rem — texto principal / botones
+ *   --fs-md     0.72rem — encabezados
+ *
+ * .scanlines — efecto CRT superpuesto (reducido en mobile, eliminado con prefers-reduced-motion)
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap');
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── Explicit base for consistent rem math ── */
+html { font-size: 16px; }
+
+:root {
+  --bg:       #0d0d18;     /* fondo base — ligeramente más claro */
+  --panel:    #141420;     /* paneles principales */
+  --panel2:   #181828;     /* paneles secundarios / tarjetas */
+  --border:   #2a2a3d;
+  --border2:  #1e1e2e;
+  --gold:     #f5c842;
+  --gold-dim: #a8842a;
+  --gold-bg:  rgba(245, 200, 66, 0.07);
+  --red:      #e05252;
+  --blue:     #5b8dd9;
+  --green:    #52c97a;
+  --purple:   #a855f7;
+  --yellow:   #f5c842;
+  --orange:   #f5853a;
+  --text:     #ffffff;     /* blanco puro — pedido explícito */
+  --text-dim: #a8a8bc;     /* ligeramente más brillante para mejor contraste sobre fondo más oscuro */
+  --pixel:    'Press Start 2P', monospace;
+  --vt:       'VT323', monospace;
+
+  /* ── Minimum font-size scale (Press Start 2P) ── */
+  --fs-micro:  0.40rem;   /* purely decorative labels  */
+  --fs-tiny:   0.46rem;   /* secondary info / badges   */
+  --fs-small:  0.52rem;   /* labels, tags              */
+  --fs-base:   0.60rem;   /* primary text / buttons    */
+  --fs-md:     0.72rem;   /* headers                   */
+
+  /* Touch target minimum */
+  --touch-min: 44px;
+}
+
+body {
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Global focus-visible style (keyboard nav) ── */
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+:focus:not(:focus-visible) { outline: none; }
+
+button { -webkit-tap-highlight-color: transparent; }
+
+/* ── Scanlines (shared) ── */
+.scanlines {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 3px,
+    rgba(0, 0, 0, 0.08) 3px,
+    rgba(0, 0, 0, 0.08) 4px
+  );
+}
+
+@media (max-width: 768px) {
+  .scanlines {
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 6px,
+      rgba(0, 0, 0, 0.05) 6px,
+      rgba(0, 0, 0, 0.05) 7px
+    );
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .scanlines { display: none; }
+}
+
+/* ══════════════════════════════
+   PWA / RESPONSIVE GLOBAL FIXES
+══════════════════════════════ */
+
+/* Safe areas for notch / home indicator on iPhone */
+.app {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  padding-left:   env(safe-area-inset-left,   0);
+  padding-right:  env(safe-area-inset-right,  0);
+}
+
+/* Touch targets — all buttons minimum 44px height */
+button, [role="button"] {
+  min-height: 44px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Prevent text selection on UI elements */
+.navbar, .tabs, .filter-bar, .nav-mobile-menu {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Smooth scrolling on iOS */
+.settings-page, .missions-page, .tos-body, .auth-modal-body {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Inputs — prevent iOS zoom (font-size ≥16px) */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+textarea {
+  font-size: max(16px, 1rem) !important;
+}
+
+/* ── instalación PWA ─────────────────────────────── */
+.pwa-install-card {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 1200;
+  width: min(22rem, calc(100vw - 1.5rem));
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: rgba(20, 20, 32, 0.96);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(10px);
+}
+
+.pwa-install-copy h3 {
+  margin: .45rem 0;
+  color: var(--gold);
+  font-family: var(--pixel);
+  font-size: var(--fs-base);
+  line-height: 1.6;
+}
+
+.pwa-install-copy p {
+  color: var(--text-dim);
+  font-family: var(--vt);
+  font-size: 1.15rem;
+  line-height: 1.35;
+}
+
+.pwa-install-badge {
+  display: inline-block;
+  padding: .2rem .45rem;
+  border-radius: 999px;
+  background: var(--gold-bg);
+  color: var(--gold);
+  font-family: var(--pixel);
+  font-size: var(--fs-tiny);
+}
+
+.pwa-install-actions {
+  display: flex;
+  gap: .65rem;
+  margin-top: .85rem;
+}
+
+.pwa-install-btn {
+  flex: 1;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #222235;
+  color: var(--text);
+  font-family: var(--pixel);
+  font-size: var(--fs-small);
+  cursor: pointer;
+}
+
+.pwa-install-btn.primary {
+  background: linear-gradient(180deg, var(--gold), #d6a82d);
+  color: #161616;
+  border-color: #f3cd61;
+}
+
+@media (max-width: 768px) {
+  .pwa-install-card {
+    right: .75rem;
+    left: .75rem;
+    bottom: calc(.75rem + env(safe-area-inset-bottom, 0));
+    width: auto;
+  }
+}
+
+/* ── Extra mobile breakpoint < 380px ────────────────────────── */
+@media (max-width: 380px) {
+  .card { margin: .5rem; }
+  .hero-greeting { font-size: 1.4rem; }
+  .modal { padding: 1rem .8rem; }
+  .builder-modal { margin: .5rem; }
+}

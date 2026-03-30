@@ -1,0 +1,293 @@
+/*
+ * HomeScreen.css — Estilos del dashboard principal
+ * ─────────────────────────────────────────────────────
+ * Cubre: Navbar, página principal y todos sus componentes visuales.
+ *
+ * Secciones en este archivo:
+ *   .app              — shell mínimo de la app (flex column)
+ *   .navbar           — barra sticky superior con logo, links y avatar
+ *   .nav-link         — botones de navegación (min-height 44px touch target)
+ *   .page             — contenedor de página con animación fadeUp
+ *   .hero             — panel hero con nombre, título y barra de XP
+ *   .xp-track/.xp-fill — barra de progreso de XP con pulso animado
+ *   .stats-grid       — grid 3×2 de tarjetas de stats (2×N en tablet, 1×N en móvil)
+ *   .stat-card        — tarjeta individual de stat con barra de color
+ *   .progress-grid    — grid 2 columnas con misiones, logros e historial
+ *   .mission-row      — fila de misión con checkmark
+ *   .achievement-row  — fila de logro con borde de color
+ *   .xp-hist-row      — fila del historial semanal de XP
+ *   .placeholder-page — pantalla vacía genérica para páginas sin contenido
+ *
+ * Responsive:
+ *   768px — tablet: stats en 2 col, nav más compacto
+ *   480px — móvil:  stats en 1 col, logo solo ícono
+ */
+
+.app {
+  min-height: 100vh;
+  background: var(--bg);
+  font-family: var(--pixel);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.navbar {
+  position: sticky; top: 0; z-index: 50;
+  background: #0d0d16; border-bottom: 3px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 1.2rem; height: 70px; gap: 0.6rem;
+}
+.nav-logo { display: flex; align-items: center; gap: 0.5rem; font-family: var(--pixel); font-size: 1rem; color: var(--gold); text-shadow: 0 0 10px rgba(245,200,66,0.5); flex-shrink: 0; }
+.nav-logo-icon { font-size: 1.5rem; }
+.nav-links { display: flex; align-items: center; gap: 0.2rem; flex: 1; justify-content: center; }
+.nav-link {
+  background: none; border: none; cursor: pointer;
+  font-family: var(--pixel); font-size: 0.60rem;
+  color: var(--text-dim); padding: 0.6rem 0.75rem; min-height: 44px;
+  letter-spacing: 0.04em; transition: color 0.15s; position: relative; white-space: nowrap;
+  display: flex; align-items: center;
+}
+.nav-link:hover { color: var(--text); }
+.nav-link.active { color: var(--gold); }
+.nav-link.active::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 3px; background: var(--gold); }
+.nav-right { display: flex; align-items: center; gap: 0.6rem; flex-shrink: 0; }
+.nav-coins { display: flex; align-items: center; gap: 0.4rem; background: var(--gold-bg); border: 1px solid var(--gold-dim); padding: 0.4rem 0.75rem; font-family: var(--vt); font-size: 1.2rem; color: var(--gold); min-height: 36px; }
+.nav-avatar { width: 44px; height: 44px; border: 2px solid var(--border); background: #1a1a2e; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; cursor: pointer; transition: border-color 0.15s; position: relative; }
+.nav-avatar:hover { border-color: var(--gold); }
+
+.page { display: flex; flex-direction: column; gap: 1.6rem; padding: 1.6rem 1.4rem 2.5rem; animation: fadeUp 0.3s ease both; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ══════════════════════════════
+   HERO SECTION
+══════════════════════════════ */
+.hero { background: #0d0d16; border: 2px solid var(--border); padding: 1.4rem 1.6rem 1.3rem; position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(245,200,66,0.04) 0%, transparent 60%); pointer-events: none; }
+.hero-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+.hero-info { flex: 1; }
+.hero-greeting { font-family: var(--vt); font-size: 1.6rem; color: var(--text-dim); letter-spacing: 0.1em; margin-bottom: 0.3rem; }
+.hero-name { font-family: var(--pixel); font-size: 1.2rem; color: var(--text); letter-spacing: 0.04em; margin-bottom: 0.5rem; }
+.hero-title-badge { display: inline-flex; align-items: center; gap: 0.35rem; background: rgba(168,85,247,0.12); border: 1px solid rgba(168,85,247,0.4); padding: 0.3rem 0.7rem; font-family: var(--vt); font-size: 1.3rem; color: #c084fc; letter-spacing: 0.08em; }
+.hero-level-badge { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100px; height: 100px; border: 3px solid var(--gold); background: var(--gold-bg); position: relative; flex-shrink: 0; }
+.hero-level-badge::before, .hero-level-badge::after { content: ''; position: absolute; width: 10px; height: 10px; background: var(--bg); }
+.hero-level-badge::before { top: -2px; left: -2px; }
+.hero-level-badge::after  { bottom: -2px; right: -2px; }
+.level-label { font-family: var(--pixel); font-size: 0.50rem; color: var(--gold-dim); letter-spacing: 0.08em; }
+.level-num { font-family: var(--pixel); font-size: 1.6rem; color: var(--gold); text-shadow: 0 0 12px rgba(245,200,66,0.6); line-height: 1; }
+.xp-meta { display: flex; justify-content: space-between; margin-bottom: 0.4rem; }
+.xp-label { font-family: var(--pixel); font-size: 0.50rem; color: var(--text-dim); letter-spacing: 0.06em; }
+.xp-value { font-family: var(--vt); font-size: 1.2rem; color: var(--gold); }
+.xp-track { height: 15px; background: var(--border2); border: 1px solid var(--border); position: relative; }
+.xp-fill { height: 100%; background: linear-gradient(90deg, var(--gold-dim), var(--gold), #ffe566); position: relative; transition: width 1s ease; }
+.xp-fill::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 3px; background: #fff8; animation: xpPulse 1.2s ease-in-out infinite; }
+@keyframes xpPulse { 0%,100%{opacity:0.3} 50%{opacity:1} }
+.xp-next { font-family: var(--vt); font-size: 1.05rem; color: var(--text-dim); margin-top: 0.35rem; text-align: right; }
+
+/* ══════════════════════════════
+   SECTION HEADER
+══════════════════════════════ */
+.section-header { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.9rem; }
+.section-title { font-family: var(--pixel); font-size: 0.62rem; color: var(--text); letter-spacing: 0.06em; }
+.section-line { flex: 1; height: 1px; background: var(--border); }
+
+/* ══════════════════════════════
+   STATS GRID
+══════════════════════════════ */
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; }
+.stat-card { background: var(--panel2); border: 1px solid var(--border2); border-top: 3px solid var(--stat-color, var(--border)); padding: 0.9rem; transition: border-color 0.15s; }
+.stat-card:hover { border-color: var(--stat-color, var(--gold)); }
+.stat-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; }
+.stat-icon { font-size: 1.4rem; }
+.stat-lv   { font-family: var(--pixel); font-size: 0.50rem; color: var(--text-dim); letter-spacing: 0.05em; }
+.stat-name { font-family: var(--pixel); font-size: 0.48rem; color: var(--text); letter-spacing: 0.04em; margin-bottom: 0.3rem; }
+.stat-xp-val { font-family: var(--vt); font-size: 1.1rem; color: var(--stat-color, var(--text-dim)); margin-bottom: 0.4rem; }
+.stat-bar-track { height: 7px; background: var(--border2); }
+.stat-bar-fill { height: 100%; background: var(--stat-color, var(--gold)); opacity: 0.85; }
+
+/* ══════════════════════════════
+   PROGRESS SECTION
+══════════════════════════════ */
+.progress-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; }
+.prog-card { background: var(--panel2); border: 1px solid var(--border2); padding: 0.95rem; }
+.prog-card-full { grid-column: 1 / -1; }
+.prog-title { display: flex; align-items: center; gap: 0.5rem; font-family: var(--pixel); font-size: 0.48rem; color: var(--text); letter-spacing: 0.05em; margin-bottom: 0.8rem; }
+.prog-title-dot { width: 7px; height: 7px; background: var(--accent, var(--gold)); flex-shrink: 0; }
+.missions-today { display: flex; flex-direction: column; gap: 0.55rem; }
+.mission-row { display: flex; align-items: center; gap: 0.6rem; padding: 0.65rem 0.7rem; background: var(--panel); border: 1px solid var(--border2); min-height: 46px; }
+.mission-check { width: 18px; height: 18px; border: 2px solid var(--border); flex-shrink: 0; }
+.mission-check.done { background: var(--green); border-color: var(--green); }
+.mission-info { flex: 1; }
+.mission-name { font-family: var(--pixel); font-size: 0.46rem; color: var(--text); letter-spacing: 0.03em; }
+.mission-name.done { color: var(--text-dim); text-decoration: line-through; }
+.mission-stat { font-family: var(--vt); font-size: 1.05rem; color: var(--text-dim); margin-top: 0.15rem; }
+.mission-xp  { font-family: var(--vt); font-size: 1.05rem; color: var(--green); }
+.achievements { display: flex; flex-direction: column; gap: 0.6rem; }
+.achievement-row { display: flex; align-items: center; gap: 0.55rem; padding: 0.65rem; background: var(--panel); border: 1px solid var(--border2); border-left: 3px solid var(--a-color, var(--gold)); min-height: 46px; }
+.achievement-icon { font-size: 1.3rem; flex-shrink: 0; }
+.achievement-info { flex: 1; }
+.achievement-name { font-family: var(--pixel); font-size: 0.46rem; color: var(--text); letter-spacing: 0.04em; }
+.achievement-desc { font-family: var(--vt); font-size: 1.05rem; color: var(--text-dim); margin-top: 0.15rem; }
+.achievement-new  { font-family: var(--pixel); font-size: 0.46rem; color: var(--bg); background: var(--gold); padding: 0.28rem 0.45rem; flex-shrink: 0; }
+.xp-history { display: flex; flex-direction: column; gap: 0.5rem; }
+.xp-hist-row { display: flex; align-items: center; gap: 0.55rem; }
+.xp-hist-day { font-family: var(--pixel); font-size: 0.44rem; color: var(--text-dim); width: 30px; flex-shrink: 0; }
+.xp-hist-bar-wrap { flex: 1; height: 10px; background: var(--border2); }
+.xp-hist-bar { height: 100%; background: var(--gold); opacity: 0.75; }
+.xp-hist-val { font-family: var(--vt); font-size: 1.05rem; color: var(--text-dim); width: 46px; text-align: right; flex-shrink: 0; }
+
+/* ══════════════════════════════
+   PLACEHOLDER PAGE
+══════════════════════════════ */
+.placeholder-page { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; padding: 3rem 1rem; }
+.placeholder-icon { font-size: 3rem; opacity: 0.4; }
+.placeholder-text { font-family: var(--pixel); font-size: 0.55rem; color: var(--text-dim); text-align: center; line-height: 2.5; letter-spacing: 0.05em; }
+
+/* ══════════════════════════════
+   RESPONSIVE — TABLET (768px)
+══════════════════════════════ */
+@media (max-width: 768px) {
+  .navbar { height: 62px; padding: 0 0.9rem; }
+  .nav-logo { font-size: 0.75rem; }
+  .nav-logo-icon { font-size: 1.2rem; }
+  /* Ocultar nav-links en móvil — se muestran en menú hamburguesa */
+  .nav-links-desktop { display: none !important; }
+  .nav-avatar { width: 48px; height: 48px; font-size: 1.3rem; }
+  .nav-coins { font-size: 1.05rem; padding: 0.35rem 0.55rem; }
+  .page { padding: 1rem 0.85rem 2rem; gap: 1.3rem; }
+  .hero-top { flex-direction: column; align-items: center; text-align: center; }
+  .hero-greeting { font-size: 1.7rem; }
+  .hero-name { font-size: 1rem; }
+  .hero-title-badge { font-size: 1.25rem; }
+  .hero-level-badge { width: 86px; height: 86px; }
+  .level-num   { font-size: 1.4rem; }
+  .level-label { font-size: 0.54rem; }
+  .xp-track    { height: 14px; }
+  .section-title   { font-size: 0.70rem; }
+  .stat-name { font-size: 0.56rem; }
+  .stat-lv   { font-size: 0.54rem; }
+  .achievement-name { font-size: 0.54rem; }
+  .achievement-new  { font-size: 0.50rem; }
+  .mission-name  { font-size: 0.54rem; }
+  .xp-hist-day   { font-size: 0.52rem; }
+  .xp-hist-val   { font-size: 1.1rem; }
+  .prog-title    { font-size: 0.56rem; }
+  .stats-grid { grid-template-columns: 1fr; gap: 0.65rem; }
+  .progress-grid { grid-template-columns: 1fr; }
+  .prog-card-full { grid-column: 1; }
+}
+
+/* ══════════════════════════════
+   RESPONSIVE — MÓVIL (<480px)
+══════════════════════════════ */
+@media (max-width: 480px) {
+  .nav-logo-text { display: none; }   /* ocultar texto, solo ícono */
+  .stats-grid { grid-template-columns: 1fr; }
+  .hero-name { font-size: 0.9rem; }
+}
+
+/* ── Hamburger button ─────────────────────────────────────────── */
+.nav-hamburger {
+  display: none;   /* visible solo en móvil via media query */
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  background: transparent;
+  border: 2px solid var(--border);
+  width: 40px; height: 40px;
+  padding: 0 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.nav-hamburger span {
+  display: block;
+  height: 2px;
+  background: var(--text-dim);
+  transition: transform 0.2s, opacity 0.2s;
+}
+.nav-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); background: var(--gold); }
+.nav-hamburger.open span:nth-child(2) { opacity: 0; }
+.nav-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); background: var(--gold); }
+
+@media (max-width: 768px) {
+  .nav-hamburger { display: flex; }
+}
+
+/* ── Mobile nav menu ─────────────────────────────────────────── */
+.nav-mobile-menu {
+  position: fixed;
+  top: 62px;       /* altura del navbar */
+  left: 0; right: 0;
+  background: var(--panel);
+  border-bottom: 2px solid var(--border);
+  border-top: 1px solid var(--border);
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  animation: mobileMenuSlide 0.18s ease both;
+  box-shadow: 0 8px 24px rgba(0,0,0,.6);
+}
+@keyframes mobileMenuSlide {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.nav-mobile-item {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 1rem 1.4rem;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border2);
+  font-family: var(--pixel);
+  font-size: var(--fs-small);
+  color: var(--text-dim);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s, color 0.12s;
+  min-height: 52px;
+}
+.nav-mobile-item:last-child { border-bottom: none; }
+.nav-mobile-item:hover { background: rgba(255,255,255,.04); color: var(--text); }
+.nav-mobile-item.active  { color: var(--gold); background: rgba(245,200,66,.06); }
+.nav-mobile-icon { font-size: 1.1rem; width: 1.4rem; text-align: center; }
+
+/* ── Estado vacío de misiones completadas hoy ────────────────── */
+.missions-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .5rem;
+  padding: 1.4rem 1rem;
+  opacity: .55;
+}
+.missions-empty-icon { font-size: 1.6rem; }
+.missions-empty-text {
+  font-family: var(--pixel);
+  font-size: var(--fs-small);
+  color: var(--text-dim);
+}
+.missions-empty-sub {
+  font-family: var(--vt);
+  font-size: 1rem;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+/* Fila XP + monedas ganadas en "completadas hoy" */
+.mission-xp-earned {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: .15rem;
+  flex-shrink: 0;
+}
+.mission-xp {
+  font-family: var(--pixel);
+  font-size: var(--fs-tiny);
+  color: var(--gold);
+}
+.mission-coins-earned {
+  font-family: var(--pixel);
+  font-size: var(--fs-tiny);
+  color: #f5c842;
+}
