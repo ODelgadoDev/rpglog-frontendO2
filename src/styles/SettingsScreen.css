@@ -577,7 +577,12 @@
 
 /* ── Responsive ── */
 @media (max-width: 480px) {
-  .notif-panel { width: calc(100vw - 2rem); right: -1rem; }
+  .notif-panel { 
+    width: 280px; /* Ancho fijo más pequeño en móvil */
+    left: 50%; 
+    transform: translateX(-50%); /* Centrar horizontalmente */
+    max-height: calc(100vh - 120px); /* Ajustar altura para no cortar en móvil */
+  }
   .nav-bell    { width: 44px; height: 44px; }
 }
 
