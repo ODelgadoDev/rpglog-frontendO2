@@ -13,7 +13,7 @@
  * (localStorage) sin datos del servidor.
  */
 
-const BASE = import.meta.env.VITE_API_URL || "https://rpglog-backend.onrender.com";
+const BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
 // ── Token management ─────────────────────────────────────────────
 export const TOKEN_KEY   = "rpglog_token";
 export const getToken    = ()      => localStorage.getItem(TOKEN_KEY);
