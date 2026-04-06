@@ -215,7 +215,7 @@ export default function MissionsScreen({ onMissionDone, userLevel = 1, userId = 
         setDailyMissions(daily);
       } catch (err) {
         setDailyError(err.message);
-        setDailyMissions(localState.dailyMissions);
+        setDailyMissions([]);
       } finally {
         setLoadingDaily(false);
       }
@@ -250,7 +250,7 @@ export default function MissionsScreen({ onMissionDone, userLevel = 1, userId = 
         }
         setLocalState(prev => ({
           ...prev,
-          dailyMissions: DAILY_MISSIONS.map(m => ({ ...m })),
+          dailyMissions: isAuth ? [] : DAILY_MISSIONS.map(m => ({ ...m })),
           specialDone: false,
           dailyResetAt: now,
         }));

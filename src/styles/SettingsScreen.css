@@ -578,11 +578,13 @@
 /* ── Responsive ── */
 @media (max-width: 480px) {
   .notif-panel {
-    width: min(92vw, 300px); /* Ajuste móvil más estrecho */
-    left: 50%;
-    right: auto;
-    transform: translateX(-50%);
-    max-height: min(calc(100vh - 96px), 420px);
+    position: fixed;
+    top: 62px;
+    left: 8px;
+    right: 8px;
+    width: auto;
+    transform: none;
+    max-height: calc(100vh - 80px);
   }
   .nav-bell { width: 44px; height: 44px; }
 }
