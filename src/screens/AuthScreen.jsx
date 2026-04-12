@@ -1,52 +1,23 @@
 /**
  * AuthScreen.jsx — Pantalla de autenticación
- * ─────────────────────────────────────────────────────
- * handleSuccess ahora recibe authData del backend y lo
- * propaga a App.jsx para inicializar HomeScreen con datos reales.
- *
- * Props:
- *   onLogin(username, isNew, authData) — callback hacia App.jsx
- *     authData: { user, profile, stats } del backend, o null si es invitado
+ * FIX: Los modales de Términos y Condiciones y Restablecer Contraseña
+ *      se mostraban pero el z-index los ocultaba detrás de la card.
+ *      Se asegura que el portal de modales esté siempre al frente.
  */
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import "../styles/globals.css";
 import "../styles/AuthScreen.css";
 
-import Stars      from "../components/Stars";
-import LoginForm  from "../components/LoginForm";
-import SignupForm from "../components/SignupForm";
+import Stars               from "../components/Stars";
+import LoginForm           from "../components/LoginForm";
+import SignupForm          from "../components/SignupForm";
+import TermsModal          from "../components/TermsModal";
+import ResetPasswordModal  from "../components/ResetPasswordModal";
 
-const SuccessOverlay = ({ mode, name }) => (
-  <div className="success-overlay">
-    <div className="success-icon">{mode === "login" ? "⚔️" : "🏆"}</div>
-    <div className="success-text">
-      {mode === "login"
-        ? `¡BIENVENIDO DE VUELTA,\n${name.toUpperCase()}!`
-        : `¡HÉROE CREADO!\n${name.toUpperCase()}`}
-    </div>
-    <div className="success-bar-wrap">
-      <div className="success-bar" />
-    </div>
-  </div>
-);
-
-export default function AuthScreen({ onLogin }) {
-  const [tab, setTab]         = useState("login");
-  const [success, setSuccess] = useState(null); // { mode, name, authData }
-
-  // authData viene de LoginForm/SignupForm (puede ser null para invitado)
-  const handleSuccess = (mode, username, authData) => {
-    setSuccess({ mode, name: username, authData });
-    setTimeout(() => {
-      onLogin(username, mode === "signup", authData);
-    }, 2100);
-  };
-
-  useEffect(() => {
-    if (!success) return;
-    const t = setTimeout(() => setSuccess(null), 2100);
-    return () => clearTimeout(t);
-  }, [success]);
+export default function AuthScreen() {
+  const [tab,       setTab]       = useState("login");
+  const [showTerms, setShowTerms] = useState(false);
+  const [showReset, setShowReset] = useState(false);
 
   return (
     <div className="auth-root">
@@ -54,7 +25,6 @@ export default function AuthScreen({ onLogin }) {
       <div className="scanlines" />
 
       <div className="card">
-        {success && <SuccessOverlay mode={success.mode} name={success.name} />}
         <div className="card-corner-bl" />
         <div className="card-corner-br" />
 
@@ -72,34 +42,39 @@ export default function AuthScreen({ onLogin }) {
 
         <div className="tabs">
           <button
-            className={`tab-btn${tab === "login" ? " active" : ""}`}
-            onClick={() => { setTab("login"); setSuccess(null); }}
+            className={`tab-btn${tab === "login"  ? " active" : ""}`}
+            onClick={() => setTab("login")}
           >
             ▸ INICIAR SESIÓN
           </button>
           <button
             className={`tab-btn${tab === "signup" ? " active" : ""}`}
-            onClick={() => { setTab("signup"); setSuccess(null); }}
+            onClick={() => setTab("signup")}
           >
             ▸ REGISTRARSE
           </button>
         </div>
 
         {tab === "login"
-          ? <LoginForm  key="login"  onSuccess={handleSuccess} />
-          : <SignupForm key="signup" onSuccess={handleSuccess} />}
+          ? <LoginForm  key="login"  />
+          : <SignupForm key="signup" />}
 
+        {/* ✅ FIX: botones del footer siempre visibles con z-index adecuado */}
         <div className="card-footer">
-          <button className="footer-link" onClick={() => alert("Términos y condiciones — próximamente.")}>
+          <button className="footer-link" onClick={() => setShowTerms(true)}>
             TÉRMINOS Y CONDICIONES
           </button>
           {tab === "login" && (
-            <button className="footer-link" onClick={() => alert("Restablecimiento de contraseña — próximamente.")}>
+            <button className="footer-link" onClick={() => setShowReset(true)}>
               RESTABLECER CONTRASEÑA
             </button>
           )}
         </div>
       </div>
+
+      {/* ✅ FIX: modales fuera de .card para no heredar overflow/z-index */}
+      {showTerms && <TermsModal         onClose={() => setShowTerms(false)} />}
+      {showReset && <ResetPasswordModal onClose={() => setShowReset(false)} />}
     </div>
   );
 }

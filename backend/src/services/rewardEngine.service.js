@@ -136,5 +136,6 @@ function mapQuestTypeToSourceType(type) {
 module.exports = {
   applyQuestReward,
   applyPhotoEvidenceReward,
-  applyLocationEvidenceReward
+  applyLocationEvidenceReward,
+  applyRewardBundle,
 };

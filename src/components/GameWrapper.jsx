@@ -36,7 +36,7 @@ const GAME_COMPONENTS = {
   rhythm: RhythmGame,
 };
 
-export default function GameWrapper({ game, onBack, onGameDone }) {
+export default function GameWrapper({ game, onBack, onGameDone, onReplayRequest }) {
   const [phase, setPhase] = useState("playing"); // "playing" | "result"
   const [score, setScore] = useState(0);
   const [key,   setKey]   = useState(0);         // fuerza remount al reiniciar
@@ -50,6 +50,8 @@ export default function GameWrapper({ game, onBack, onGameDone }) {
 
   // Reiniciar: nueva partida sin volver al lobby (no aplica recompensas de nuevo)
   const handleReplay = () => {
+    const canReplay = onReplayRequest ? onReplayRequest(game) : true;
+    if (!canReplay) return;
     setKey(p => p + 1);
     setPhase("playing");
     setScore(0);

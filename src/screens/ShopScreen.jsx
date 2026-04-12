@@ -21,13 +21,15 @@ import CustomMissionsTab from "../components/shop/CustomMissionsTab";
 import TitlesTab         from "../components/shop/TitlesTab";
 
 export default function ShopScreen({
-  coins, setCoins,
+  coins,
   userLevel = 1,
   ownedIds, equippedId,
   onBuyTitle, onEquipTitle, onUnequipTitle,
   customMissions, setCustomMissions,
   onMissionComplete,
   unlockedSlots, setUnlockedSlots,
+  onUnlockSlot,
+  onCreateCustomMission,
 }) {
   const [shopTab, setShopTab] = useState("missions");
 
@@ -45,17 +47,17 @@ export default function ShopScreen({
       {shopTab === "missions" ? (
         <CustomMissionsTab
           coins={coins}
-          setCoins={setCoins}
           customMissions={customMissions}
           setCustomMissions={setCustomMissions}
           onMissionComplete={onMissionComplete}
           unlockedSlots={unlockedSlots}
           setUnlockedSlots={setUnlockedSlots}
+          onUnlockSlot={onUnlockSlot}
+          onCreateCustomMission={onCreateCustomMission}
         />
       ) : (
         <TitlesTab
           coins={coins}
-          setCoins={setCoins}
           userLevel={userLevel}
           ownedIds={ownedIds}
           equippedId={equippedId}

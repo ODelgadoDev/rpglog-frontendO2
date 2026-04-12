@@ -8,7 +8,7 @@
  *   stats (array) — array de objetos de stat:
  *     { id, name, icon, color, lv, xp, max }
  *     • Para cuenta nueva: todas en lv 1, xp 0, max 200
- *     • Para login demo:   datos de progreso de ejemplo
+ *     • Se espera que los datos vengan del backend para cuentas reales
  *
  * La barra de cada stat se colorea con la variable CSS --stat-color
  * que se inyecta en el style del contenedor.

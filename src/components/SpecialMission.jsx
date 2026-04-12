@@ -1,24 +1,13 @@
 /**
  * SpecialMission.jsx — Misión especial destacada
- * ─────────────────────────────────────────────────────
- * Componente visual diferenciado para la misión especial del día.
- * Se distingue del MissionCard normal por:
- *   • Borde con gradiente dorado animado (shimmer)
- *   • Partículas flotantes decorativas (⚡✨🌟)
- *   • Badge 2×XP pulsante
- *   • Ícono en panel cuadrado con efecto float
- *   • Capa de bloqueo si la misión ya está completada
- *
- * Props:
- *   mission   — objeto de misión especial (igual estructura que MissionCard)
- *   onComplete — callback al presionar completar
- *
- * Datos: PARTICLES (array de emojis decorativos) desde data/constants.js
- * Estilos: MissionsScreen.css (.special-wrapper, .special-card, etc.)
  */
 import { PARTICLES } from "../data/constants";
 
 export default function SpecialMission({ mission, onComplete }) {
+  // Guard: si no hay misión o stats es null/undefined, no renderizar
+  if (!mission) return null;
+  const stats = Array.isArray(mission.stats) ? mission.stats : [];
+
   return (
     <div className="special-wrapper">
       <div className="special-glow" />
@@ -54,13 +43,15 @@ export default function SpecialMission({ mission, onComplete }) {
         <div className="special-body">
           <div className="special-icon-wrap">{mission.icon}</div>
           <div className="special-info">
-            <div className="special-stats-row">
-              {mission.stats.map((s, i) => (
-                <div key={i} className="special-stat-tag" style={{ "--sc": s.color }}>
-                  {s.icon} {s.label}
-                </div>
-              ))}
-            </div>
+            {stats.length > 0 && (
+              <div className="special-stats-row">
+                {stats.map((s, i) => (
+                  <div key={i} className="special-stat-tag" style={{ "--sc": s.color }}>
+                    {s.icon} {s.label}
+                  </div>
+                ))}
+              </div>
+            )}
             <div className="special-name">{mission.name}</div>
             <div className="special-desc">{mission.desc}</div>
           </div>
@@ -77,15 +68,17 @@ export default function SpecialMission({ mission, onComplete }) {
               <div className="special-reward-val coins">🪙 {mission.coins}</div>
             </div>
           </div>
-          <button
-            className="special-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              onComplete(mission);
-            }}
-          >
-            ⚡ ACEPTAR
-          </button>
+          {!mission.locked && (
+            <button
+              className="special-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                onComplete(mission);
+              }}
+            >
+              ⚡ ACEPTAR
+            </button>
+          )}
         </div>
 
         {mission.locked && (

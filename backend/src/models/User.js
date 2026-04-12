@@ -6,6 +6,8 @@ const userSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     passwordHash: { type: String, required: true },
 
+    birthdate: { type: Date, default: null },
+
     // RPG basics
     level: { type: Number, default: 1 },
     xp: { type: Number, default: 0 },

@@ -1,37 +1,33 @@
 /**
  * App.jsx — Componente raíz de la aplicación
  * ─────────────────────────────────────────────────────
- * Modo 100% frontend — sin llamadas al backend.
- * Toda la persistencia usa localStorage por usuario.
+ * Ya NO es "modo 100% frontend". Ahora maneja authData del backend
+ * y lo pasa a HomeScreen.
  *
  * Estado:
  *   currentUser (object | null)
  *     null → no autenticado → muestra AuthScreen
  *     { name, isNewAccount } → autenticado → muestra HomeScreen
  */
-import { useState } from "react";
+import React from "react";
 import AuthScreen from "./screens/AuthScreen";
 import HomeScreen from "./screens/HomeScreen";
+import { useAuth } from "./contexts/AuthContext";
 
 export default function App() {
-  const [currentUser, setCurrentUser] = useState(null);
+  const { user, loading, logout } = useAuth();
 
-  const handleLogin = (username, isNew = false, authData = null) => {
-    setCurrentUser({ name: username, isNewAccount: isNew, authData });
-  };
-
-  const handleLogout = () => setCurrentUser(null);
-
-  if (!currentUser) {
-    return <AuthScreen onLogin={handleLogin} />;
+  if (loading) {
+    return (
+      <div style={{ fontFamily: "var(--pixel)", padding: "2rem", textAlign: "center" }}>
+        ⏳ CARGANDO...
+      </div>
+    );
   }
 
-  return (
-    <HomeScreen
-      initialName={currentUser.name}
-      isNewAccount={currentUser.isNewAccount}
-      authData={currentUser.authData}
-      onLogout={handleLogout}
-    />
-  );
+  if (!user) {
+    return <AuthScreen />;
+  }
+
+  return <HomeScreen onLogout={logout} />;
 }

@@ -30,7 +30,22 @@ const SECTION_TITLES = {
   "settings-gps":     "📡 GPS",
 };
 
-export default function SettingsScreen({ section, user, setUser, notifs, setNotifs, onLogout, gpsEnabled, gpsStatus, lastCoords, onToggleGps }) {
+export default function SettingsScreen({
+  section,
+  user,
+  setUser,
+  notifs,
+  setNotifs,
+  notifPrefs,
+  setNotifPrefs,
+  walletHistory,
+  weeklyCoins,
+  onLogout,
+  gpsEnabled,
+  gpsStatus,
+  lastCoords,
+  onToggleGps,
+}) {
   return (
     <div className="settings-page">
 
@@ -45,10 +60,19 @@ export default function SettingsScreen({ section, user, setUser, notifs, setNoti
         <ProfileSection user={user} setUser={setUser} />
       )}
       {section === "settings-wallet" && (
-        <WalletSection user={user} />
+        <WalletSection
+          coins={user.coins}
+          txHistory={walletHistory}
+          weeklyCoins={weeklyCoins}
+        />
       )}
       {section === "settings-notifs" && (
-        <NotificationsSection notifs={notifs} setNotifs={setNotifs} />
+        <NotificationsSection
+          notifs={notifs}
+          setNotifs={setNotifs}
+          prefs={notifPrefs}
+          setPrefs={setNotifPrefs}
+        />
       )}
       {section === "settings-logout" && (
         <LogoutSection onLogout={onLogout} />

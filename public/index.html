@@ -11,12 +11,34 @@
   <body>
     <div id="root"></div>
     <script>
-      if ('serviceWorker' in navigator) {
+      // En desarrollo (HTTP), forzar desregistro de Service Workers y limpiar caches
+      // Esto se ejecuta antes de cargar el bundle para evitar servir código cacheado.
+      (function(){
+        try {
+          if ('serviceWorker' in navigator && location.protocol !== 'https:') {
+            navigator.serviceWorker.getRegistrations().then(function(regs){
+              regs.forEach(function(r){ r.unregister().catch(function(){}); });
+            }).catch(function(){});
+          }
+          if (window.caches && location.protocol !== 'https:') {
+            caches.keys().then(function(keys){ keys.forEach(function(k){ caches.delete(k); }); }).catch(function(){});
+          }
+          console.log('Dev: Service Workers unregistered and caches cleared.');
+        } catch (e) { /* no-op */ }
+      })();
+    </script>
+    <script>
+      // Registrar Service Worker SOLO en producción sobre HTTPS.
+      // Evitamos el registro en desarrollo (http) para no servir assets cacheados.
+      if ('serviceWorker' in navigator && location.protocol === 'https:') {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/sw.js')
             .then(reg => console.log('Service Worker registrado con éxito', reg))
             .catch(err => console.log('Error al registrar Service Worker', err));
         });
+      } else {
+        // Desarrollo local: no registrar para evitar caché de builds anteriores
+        console.log('Service Worker no registrado (modo desarrollo).');
       }
     </script>
   </body>

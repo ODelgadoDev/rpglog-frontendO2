@@ -5,6 +5,7 @@ const authRoutes = require("./routes/auth.routes");
 const questsRoutes = require("./routes/quests.routes");
 const syncRoutes = require("./routes/sync.routes");
 const progressRoutes = require("./routes/progress.routes");
+const pushRoutes = require("./routes/push.routes");
 
 const app = express();
 
@@ -66,6 +67,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/quests", questsRoutes);
 app.use("/api/sync", syncRoutes);
 app.use("/api/progress", progressRoutes);
+app.use("/api/push", pushRoutes);
 
 app.use((req, res) => {
   res.status(404).json({

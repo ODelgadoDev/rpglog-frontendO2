@@ -1,23 +1,7 @@
 /**
  * Navbar.jsx — Barra de navegación superior
- * ─────────────────────────────────────────────────────
- * RESPONSIVE:
- *   Desktop (>768px): logo + nav-links centrados + right controls
- *   Móvil  (≤768px) : solo ícono 🗡️ (sin texto) + controles right +
- *                     hamburger que despliega un menú de nav
- *
- * El menú hamburguesa se cierra al:
- *   - Seleccionar cualquier ítem de navegación
- *   - Hacer clic fuera (manejado por handleAppClick en HomeScreen)
- *
- * Props:
- *   active / setActive
- *   coins
- *   showDropdown / setShowDropdown — AvatarDropdown
- *   showNotifPanel / setShowNotifPanel — NotificationPanel
- *   showHamburger / setShowHamburger — menú móvil
- *   unreadCount / notifs / setNotifs
- *   user — { name, title, avatar, level }
+ * FIX: El logo "RPG LOG" navega a "home" al hacer clic (ya funcionaba,
+ *      pero se asegura que también el texto del logo sea clickeable)
  */
 import { NAV_ITEMS } from "../data/constants";
 import AvatarDropdown    from "./settings/AvatarDropdown";
@@ -69,13 +53,18 @@ export default function Navbar({
   return (
     <>
       <nav className="navbar">
-        {/* ── Logo ── solo ícono en móvil ─────────────────── */}
-        <div className="nav-logo">
+        {/* ✅ FIX: Logo y texto navegan a "home" al hacer clic */}
+        <div
+          className="nav-logo"
+          onClick={() => handleNavClick("home")}
+          style={{ cursor: "pointer" }}
+          title="Ir al inicio"
+        >
           <span className="nav-logo-icon">🗡️</span>
           <span className="nav-logo-text">RPG LOG</span>
         </div>
 
-        {/* ── Nav links (ocultos en móvil) ─────────────────── */}
+        {/* Nav links (ocultos en móvil) */}
         <div className="nav-links nav-links-desktop">
           {NAV_LINKS.map(n => (
             <button
@@ -88,7 +77,7 @@ export default function Navbar({
           ))}
         </div>
 
-        {/* ── Right controls ───────────────────────────────── */}
+        {/* Right controls */}
         <div className="nav-right">
           <div className="nav-coins">🪙 {coins.toLocaleString()}</div>
 
@@ -143,7 +132,7 @@ export default function Navbar({
         </div>
       </nav>
 
-      {/* ── Menú desplegable móvil ────────────────────────── */}
+      {/* Menú desplegable móvil */}
       {showHamburger && (
         <div className="nav-mobile-menu" onClick={e => e.stopPropagation()}>
           {NAV_LINKS.map(n => (

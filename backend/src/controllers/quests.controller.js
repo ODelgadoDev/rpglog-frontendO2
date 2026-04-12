@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Quest = require("../models/Quest");
 const { DAILY_QUESTS } = require("../utils/dailyQuests");
 const {
@@ -6,8 +7,10 @@ const {
   applyLocationEvidenceReward
 } = require("../services/rewardEngine.service");
 
-function getTodayKey() {
-  return new Date().toISOString().split("T")[0];
+const DAILY_WINDOW_MS = 6 * 60 * 60 * 1000;
+
+function getCurrentDailyWindowKey() {
+  return `daily_${Math.floor(Date.now() / DAILY_WINDOW_MS)}`;
 }
 
 async function listQuests(req, res) {
@@ -510,12 +513,12 @@ async function deleteCustomQuest(req, res) {
 async function seedDailyQuests(req, res) {
   try {
     const userId = req.user.userId;
-    const todayKey = getTodayKey();
+    const dayKey = getCurrentDailyWindowKey();
 
     const existingToday = await Quest.find({
       userId,
       type: "daily",
-      dayKey: todayKey,
+      dayKey,
       deleted: false
     });
 
@@ -536,7 +539,7 @@ async function seedDailyQuests(req, res) {
       globalXpReward: quest.globalXpReward ?? quest.xpReward ?? 10,
       coinReward: quest.coinReward ?? 0,
       statRewards: quest.statRewards ?? [],
-      dayKey: todayKey,
+      dayKey,
 
       photoEvidenceEnabled: quest.photoEvidenceEnabled ?? false,
       locationEvidenceEnabled: quest.locationEvidenceEnabled ?? false,
@@ -596,7 +599,7 @@ async function getQuestHistorySummary(req, res) {
     const summary = await Quest.aggregate([
       {
         $match: {
-          userId: Quest.db.base.Types.ObjectId.createFromHexString(userId),
+          userId: new mongoose.Types.ObjectId(userId),
           completed: true
         }
       },

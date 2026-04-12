@@ -84,10 +84,12 @@ function MissionTimer({ startedAt, durationMs, onReady }) {
 }
 
 export default function CustomMissionsTab({
-  coins, setCoins,
+  coins,
   customMissions, setCustomMissions,
   onMissionComplete,
   unlockedSlots, setUnlockedSlots,
+  onUnlockSlot,
+  onCreateCustomMission,
 }) {
   const [showBuilder,  setShowBuilder]  = useState(false);
   const [targetSlot,   setTargetSlot]   = useState(null); // índice del slot donde crear
@@ -109,28 +111,30 @@ export default function CustomMissionsTab({
     setReadyMissions(prev => prev.has(mIdx) ? prev : new Set([...prev, mIdx]));
 
   // Comprar un slot → descontar monedas y añadir al set
-  const handleBuySlot = () => {
+  const handleBuySlot = async () => {
     const { slotIdx, price } = confirmBuy;
-    setCoins(p => p - price);
-    setUnlockedSlots(prev => new Set([...prev, slotIdx]));
+    const unlocked = await onUnlockSlot(slotIdx, price);
+    if (!unlocked) return;
+    setUnlockedSlots((prev) => new Set([...prev, slotIdx]));
     setConfirmBuy(null);
   };
 
   // Crear misión en el slot seleccionado
-  const handleCreate = (mission) => {
-    setCoins(p => p - mission.cost);
-    setCustomMissions(prev => [
-      ...prev,
-      { ...mission, slotIdx: targetSlot, startedAt: Date.now(), durationMs: mission.dur.hours * 3600 * 1000, done: false },
-    ]);
+  const handleCreate = async (mission) => {
+    const createdMission = await onCreateCustomMission(mission, targetSlot);
+    if (!createdMission) return;
+
+    setCustomMissions((prev) => [...prev, createdMission]);
     setShowBuilder(false);
     setTargetSlot(null);
   };
 
   // Completar misión → propaga recompensas
-  const handleComplete = (mission, mIdx) => {
-    setCustomMissions(prev => prev.map((m, i) => i === mIdx ? { ...m, done: true } : m));
-    if (onMissionComplete) onMissionComplete(mission);
+  const handleComplete = async (mission, mIdx, extra = {}) => {
+    setCustomMissions((prev) =>
+      prev.map((m, i) => (i === mIdx ? { ...m, done: true } : m))
+    );
+    if (onMissionComplete) await onMissionComplete(mission, extra);
     setConfirmDone(null);
   };
 
@@ -323,10 +327,13 @@ export default function CustomMissionsTab({
             locationBonusApplied: false,
           }}
           onClose={() => setConfirmDone(null)}
-          onDone={(finalXp) => handleComplete(
-            { ...confirmDone.mission, xp: finalXp },
-            confirmDone.mIdx
-          )}
+          onDone={(finalXp, questId, gpsCoords) =>
+            handleComplete(
+              { ...confirmDone.mission, xp: finalXp },
+              confirmDone.mIdx,
+              { finalXp, questId, gpsCoords }
+            )
+          }
         />
       ) : confirmDone ? (
         <ConfirmModal
@@ -334,7 +341,12 @@ export default function CustomMissionsTab({
           title="COMPLETAR MISIÓN"
           desc={`¿Reclamar las recompensas de "${confirmDone.mission.name}"?\n+${confirmDone.mission.xp} XP · 🪙${confirmDone.mission.cost}`}
           confirmLabel="✅ RECLAMAR"
-          onConfirm={() => handleComplete(confirmDone.mission, confirmDone.mIdx)}
+          onConfirm={() =>
+            handleComplete(confirmDone.mission, confirmDone.mIdx, {
+              finalXp: confirmDone.mission.xp,
+              questId: confirmDone.mission.backendQuestId || null,
+            })
+          }
           onClose={() => setConfirmDone(null)}
         />
       ) : null}

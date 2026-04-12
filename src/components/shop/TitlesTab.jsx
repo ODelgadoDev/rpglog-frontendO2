@@ -24,7 +24,7 @@ import ConfirmModal from "./ConfirmModal";
 const FILTERS = ["ALL", "GRATIS", "COMÚN", "RARO", "ÉPICO"];
 
 export default function TitlesTab({
-  coins, setCoins, userLevel,
+  coins, userLevel,
   ownedIds, equippedId,
   onBuyTitle, onEquipTitle, onUnequipTitle,
 }) {
@@ -36,10 +36,9 @@ export default function TitlesTab({
   // Título actualmente equipado para el banner
   const equippedTitle = TITLES_DATA.find(t => t.id === equippedId) || TITLES_DATA[0];
 
-  const handleBuy = (t) => {
-    setCoins(p => p - t.price);
-    onBuyTitle(t);
-    setConfirm(null);
+  const handleBuy = async (t) => {
+    const bought = await onBuyTitle(t);
+    if (bought) setConfirm(null);
   };
 
   return (

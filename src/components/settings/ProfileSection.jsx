@@ -17,18 +17,50 @@
  * Datos: AVATARS (array de emojis) desde data/settings.js
  * Estilos: SettingsScreen.css (.avatar-grid, .avatar-opt, .field-wrap)
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AVATARS } from "../../data/settings";
+import { authApi, getToken } from "../../services/api";
 
 export default function ProfileSection({ user, setUser }) {
   const [name, setName]     = useState(user.name);
   const [avatar, setAvatar] = useState(user.avatar);
+  const [birthdate, setBirthdate] = useState(user.birthdate || "");
   const [saved, setSaved]   = useState(false);
 
-  const dirty = name !== user.name || avatar !== user.avatar;
+  useEffect(() => {
+    setName(user.name);
+    setAvatar(user.avatar);
+    setBirthdate(user.birthdate || "");
+  }, [user.name, user.avatar, user.birthdate]);
 
-  const save = () => {
-    setUser(p => ({ ...p, name: name.trim() || p.name, avatar }));
+  const normalizedName = name.trim();
+  const dirty = normalizedName !== user.name || avatar !== user.avatar || birthdate !== (user.birthdate || "");
+  const canSave = normalizedName.length > 0 && !!birthdate && dirty;
+
+  const save = async () => {
+    if (!canSave) return;
+
+    const hasToken = !!getToken();
+    if (hasToken) {
+      try {
+        const data = await authApi.updateProfile({ username: normalizedName, birthdate });
+        if (data.user) {
+          setUser((p) => ({
+            ...p,
+            name: data.user.username || p.name,
+            avatar,
+            birthdate: data.user.birthdate
+              ? new Date(data.user.birthdate).toISOString().split("T")[0]
+              : birthdate,
+          }));
+        }
+      } catch (err) {
+        // Fallback to local
+        setUser((p) => ({ ...p, name: normalizedName || p.name, avatar, birthdate }));
+      }
+    } else {
+      setUser((p) => ({ ...p, name: normalizedName || p.name, avatar, birthdate }));
+    }
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -85,12 +117,31 @@ export default function ProfileSection({ user, setUser }) {
           <div className="field-char-limit">{name.length}/20</div>
         </div>
 
+        {/* Birthdate input */}
+        <div className="field-row">
+          <label className="field-label-settings">▸ FECHA DE NACIMIENTO</label>
+          <div className="field-wrap">
+            <input
+              className="field-input-settings"
+              type="date"
+              value={birthdate}
+              onChange={e => setBirthdate(e.target.value)}
+              max={new Date().toISOString().split("T")[0]}
+            />
+          </div>
+        </div>
+
         <div style={{ display: "flex", alignItems: "center", gap: ".8rem" }}>
-          <button className="save-btn" disabled={!dirty} onClick={save}>
+          <button className="save-btn" disabled={!canSave} onClick={save}>
             💾 GUARDAR CAMBIOS
           </button>
           {saved && <span className="save-success">✓ GUARDADO</span>}
         </div>
+        {!birthdate && (
+          <div className="field-char-limit" style={{ color: "var(--orange)" }}>
+            La fecha de nacimiento es obligatoria para guardar el perfil.
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 /**
  * services/api.js — Cliente centralizado del backend RPGLog
  * ─────────────────────────────────────────────────────────
- * URL base: REACT_APP_API_URL (.env) → https://rpglog-backend.onrender.com
+ * URL base: import.meta.env.VITE_API_URL (.env) → https://rpglog-backend.onrender.com
  * Auth:     Bearer token en localStorage["rpglog_token"]
  *
  * IMPORTANTE PARA DEPLOY:
@@ -13,7 +13,25 @@
  * (localStorage) sin datos del servidor.
  */
 
-const BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
+function getBaseUrl() {
+  if (typeof process !== "undefined") {
+    if (process.env.REACT_APP_API_URL) return process.env.REACT_APP_API_URL;
+    if (process.env.VITE_API_URL) return process.env.VITE_API_URL;
+  }
+
+  try {
+    if (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) {
+      return import.meta.env.VITE_API_URL;
+    }
+    if (typeof import.meta !== "undefined" && import.meta.env?.REACT_APP_API_URL) {
+      return import.meta.env.REACT_APP_API_URL;
+    }
+  } catch (_) {}
+
+  return "http://localhost:3001";
+}
+
+const BASE = getBaseUrl();
 // ── Token management ─────────────────────────────────────────────
 export const TOKEN_KEY   = "rpglog_token";
 export const getToken    = ()      => localStorage.getItem(TOKEN_KEY);
@@ -43,6 +61,11 @@ async function apiFetch(path, options = {}) {
   const data = await res.json().catch(() => ({}));
 
   if (!res.ok || !data.ok) {
+    // Si el backend responde 401, limpiar token y avisar a la app
+    if (res.status === 401) {
+      try { clearToken(); } catch (_) {}
+      try { window.dispatchEvent(new CustomEvent("rpglog:unauthorized")); } catch (_) {}
+    }
     throw new Error(data.message || `Error ${res.status}`);
   }
   return data;
@@ -66,6 +89,7 @@ export function mapProfile(profile, user) {
     level:  profile?.level          ?? 1,
     xp:     profile?.xpCurrentLevel ?? 0,
     xpMax:  profile?.xpNextLevel    ?? 300,
+    birthdate: user?.birthdate ? new Date(user.birthdate).toISOString().split("T")[0] : "",
   };
 }
 
@@ -144,6 +168,13 @@ export const authApi = {
     return apiFetch("/api/auth/me");
   },
 
+  async updateProfile(payload) {
+    return apiFetch("/api/auth/profile", {
+      method: "PATCH",
+      body: JSON.stringify(payload || {}),
+    });
+  },
+
   logout() {
     clearToken();
   },
@@ -155,6 +186,20 @@ export const authApi = {
 export const progressApi = {
   async getSummary() {
     return apiFetch("/api/progress/summary");
+  },
+
+  async addGameReward({ xp, coins, statKey }) {
+    return apiFetch("/api/progress/game-reward", {
+      method: "POST",
+      body: JSON.stringify({ xp, coins, statKey }),
+    });
+  },
+
+  async spendCoins({ amount }) {
+    return apiFetch("/api/progress/spend-coins", {
+      method: "POST",
+      body: JSON.stringify({ amount }),
+    });
   },
 };
 
@@ -197,10 +242,40 @@ export const questsApi = {
     return apiFetch("/api/quests/custom");
   },
 
-  async createCustom({ title, description, xpReward, coinReward, statRewards }) {
+  async createCustom({
+    title,
+    description,
+    xpReward,
+    globalXpReward,
+    coinReward,
+    statRewards,
+    photoEvidenceEnabled,
+    locationEvidenceEnabled,
+    photoBonusXp,
+    photoBonusCoins,
+    photoBonusStatRewards,
+    locationBonusXp,
+    locationBonusCoins,
+    locationBonusStatRewards,
+  }) {
     return apiFetch("/api/quests/custom", {
       method: "POST",
-      body:   JSON.stringify({ title, description, xpReward, coinReward, statRewards }),
+      body:   JSON.stringify({
+        title,
+        description,
+        xpReward,
+        globalXpReward,
+        coinReward,
+        statRewards,
+        photoEvidenceEnabled,
+        locationEvidenceEnabled,
+        photoBonusXp,
+        photoBonusCoins,
+        photoBonusStatRewards,
+        locationBonusXp,
+        locationBonusCoins,
+        locationBonusStatRewards,
+      }),
     });
   },
 

@@ -24,7 +24,7 @@
  *                     Rarezas: "free" | "common" | "rare" | "epic"
  *                     Los títulos "rare" y "epic" tienen perks de XP/monedas
  *
- *   DEMO_ACTIVE_MISSION — Misión custom de ejemplo para mostrar en slot activo
+ *   DEMO_ACTIVE_MISSION — (deprecated) Previously used for demo examples
  */
 // ── Stats (shared with missions) ─────────────────────────────────
 export const SHOP_STATS = [

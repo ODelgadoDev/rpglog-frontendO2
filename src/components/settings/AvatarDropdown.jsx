@@ -1,29 +1,18 @@
 /**
- * AvatarDropdown.jsx — Menú desplegable del avatar
- * ─────────────────────────────────────────────────────
- * Panel que aparece al hacer clic en el avatar del Navbar.
- * Reemplaza el ítem CONFIG en la barra de navegación.
+ * AvatarDropdown.jsx — FIXED: agrega opción "Instalar aplicación" antes de cerrar sesión
  *
- * Contiene:
- *   Header   — avatar, nombre, título y nivel + monedas del usuario
- *   👤 PERFIL Y AVATAR  → navega a "settings-profile"
- *   🪙 MONEDERO         → navega a "settings-wallet"
- *   🔔 NOTIFICACIONES   → navega a "settings-notifs"
- *              (muestra un punto rojo pulsante si hay no leídas)
- *   🚪 CERRAR SESIÓN    → navega a "settings-logout" (estilo peligro rojo)
- *
- * Se cierra automáticamente al seleccionar cualquier opción
- * y también al hacer clic fuera (manejado en HomeScreen.handleAppClick).
- *
- * Props:
- *   setActivePage   — cambia la página en HomeScreen
- *   setShowDropdown — cierra el dropdown
- *   unreadCount     — número de notificaciones sin leer
- *   user            — objeto { name, title, avatar, level, coins }
- *
- * Estilos: SettingsScreen.css (.dropdown-panel, .dp-item, .dp-header)
+ * Cambio: recibe canInstall y onInstall como props opcionales.
+ * Si canInstall=true muestra el item de instalación PWA.
  */
-export default function AvatarDropdown({ setActivePage, setShowDropdown, unreadCount, user }) {
+export default function AvatarDropdown({
+  setActivePage,
+  setShowDropdown,
+  unreadCount,
+  user,
+  // PWA props nuevas:
+  canInstall = false,
+  onInstall,
+}) {
   const go = (page) => { setActivePage(page); setShowDropdown(false); };
 
   return (
@@ -40,7 +29,7 @@ export default function AvatarDropdown({ setActivePage, setShowDropdown, unreadC
             <div className="dp-title-tag">{user.title}</div>
           </div>
         </div>
-        <div className="dp-level">NIVEL {user.level} · 🪙 {user.coins.toLocaleString()}</div>
+        <div className="dp-level">NIVEL {user.level} · 🪙 {(user.coins || 0).toLocaleString()}</div>
       </div>
 
       {/* Menu items */}
@@ -70,6 +59,18 @@ export default function AvatarDropdown({ setActivePage, setShowDropdown, unreadC
         <span className="dp-item-label">GPS</span>
         <span className="dp-item-arrow">›</span>
       </button>
+
+      {/* ── NUEVO: Instalar PWA (solo si canInstall) ── */}
+      {canInstall && (
+        <button
+          className="dp-item"
+          onClick={() => { setShowDropdown(false); onInstall?.(); }}
+        >
+          <span className="dp-item-icon">📲</span>
+          <span className="dp-item-label">INSTALAR APLICACIÓN</span>
+          <span className="dp-item-arrow">›</span>
+        </button>
+      )}
 
       <button className="dp-item danger" onClick={() => go("settings-logout")}>
         <span className="dp-item-icon">🚪</span>

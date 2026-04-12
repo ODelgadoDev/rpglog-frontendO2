@@ -25,6 +25,8 @@ const userProfileSchema = new mongoose.Schema(
 
     equippedTitleId: { type: String, default: null },
     customSlots: { type: Number, default: 1, min: 1, max: 2 }
+    ,
+    notifPrefs: { type: mongoose.Schema.Types.Mixed, default: {} }
   },
   { timestamps: true }
 );

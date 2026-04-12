@@ -15,7 +15,6 @@
  *   .field / .field-wrap / .field-input — campos de formulario con focus dorado
  *   .eye-btn          — toggle de visibilidad de contraseña (min 44×44px)
  *   .submit-btn       — botón principal amarillo con efecto press
- *   .guest-btn        — acceso como invitado (borde sutil)
  *   .error-msg        — mensaje de error con animación shake
  *   .success-overlay  — overlay de éxito al autenticarse con barra de carga
  *
@@ -132,13 +131,6 @@
 .divider { display: flex; align-items: center; gap: 0.6rem; margin: 1.1rem 0; }
 .divider-line { flex: 1; height: 1px; background: var(--border); }
 .divider-text { font-family: var(--pixel); font-size: 0.46rem; color: var(--text-dim); letter-spacing: 0.08em; }
-.guest-btn {
-  width: 100%; padding: 0.8rem; min-height: 50px;
-  background: none; border: 2px solid var(--border);
-  font-family: var(--pixel); font-size: 0.52rem; color: var(--text-dim);
-  cursor: pointer; letter-spacing: 0.06em; transition: border-color 0.15s, color 0.15s;
-}
-.guest-btn:hover { border-color: var(--text-dim); color: var(--text); }
 
 /* ══════════════════════════════
    ERROR MESSAGE
@@ -184,7 +176,7 @@
   .field-label { font-size: 0.56rem; }
   .field-input { font-size: 1.3rem; }
   .submit-btn { font-size: 0.65rem; padding: 0.95rem; min-height: 54px; }
-  .guest-btn  { font-size: 0.58rem; min-height: 52px; }
+  
   .divider-text { font-size: 0.52rem; }
   .error-msg { font-size: 1.15rem; }
 }

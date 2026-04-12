@@ -1018,3 +1018,33 @@
 .game-card-multi:hover {
   border-color: transparent;
 }
+
+/* ══════════════════════════════
+   ATTEMPTS STYLES
+══════════════════════════════ */
+.game-card-locked {
+  opacity: 0.6;
+  cursor: not-allowed !important;
+}
+.game-card-locked:hover {
+  transform: none !important;
+  border-color: var(--border) !important;
+}
+.game-attempts-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 0.4rem;
+}
+.game-attempts-text {
+  font-family: var(--pixel);
+  font-size: 0.38rem;
+  color: var(--green);
+  letter-spacing: 0.03em;
+}
+.game-attempts-cooldown {
+  font-family: var(--pixel);
+  font-size: 0.38rem;
+  color: var(--orange);
+  letter-spacing: 0.03em;
+}

@@ -7,9 +7,9 @@
  *   onSuccess(mode, username, authData?) — callback al registro exitoso
  */
 import { useState } from "react";
-import { authApi } from "../services/api";
+import { useAuth } from "../contexts/AuthContext";
 
-export default function SignupForm({ onSuccess }) {
+export default function SignupForm() {
   const [username,    setUsername]    = useState("");
   const [email,       setEmail]       = useState("");
   const [pass,        setPass]        = useState("");
@@ -18,6 +18,7 @@ export default function SignupForm({ onSuccess }) {
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading,     setLoading]     = useState(false);
   const [error,       setError]       = useState("");
+  const { register } = useAuth();
 
   const handleSubmit = async () => {
     setError("");
@@ -28,13 +29,8 @@ export default function SignupForm({ onSuccess }) {
 
     setLoading(true);
     try {
-      const data = await authApi.register({ username: username.trim(), email, password: pass });
-      // data = { ok, token, user, profile, stats }
-      onSuccess("signup", data.user.username, {
-        user:    data.user,
-        profile: data.profile,
-        stats:   data.stats,
-      });
+      await register({ username: username.trim(), email, password: pass });
+      // AuthProvider sets global state; nothing else required here.
     } catch (err) {
       setError(`▸ ${err.message || "Error al crear la cuenta"}`);
     } finally {
