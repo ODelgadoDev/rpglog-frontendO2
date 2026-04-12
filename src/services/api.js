@@ -1,46 +1,46 @@
 /**
  * services/api.js — Cliente centralizado del backend RPGLog
  * ─────────────────────────────────────────────────────────
- * URL base: import.meta.env.VITE_API_URL (.env) → https://rpglog-backend.onrender.com
- * Auth:     Bearer token en localStorage["rpglog_token"]
+ * URL base:
+ *   1) process.env.REACT_APP_API_URL   (CRA / Netlify)
+ *   2) http://localhost:3001           (fallback local)
+ *
+ * Auth: Bearer token en localStorage["rpglog_token"]
  *
  * IMPORTANTE PARA DEPLOY:
  *   El backend en Render necesita CORS_ORIGIN configurado con el dominio
  *   del frontend. En Render → tu servicio backend → Environment:
- *     CORS_ORIGIN = https://tu-frontend.onrender.com,http://localhost:3000
- *
- * Si el backend devuelve error CORS, la app funciona en modo local
- * (localStorage) sin datos del servidor.
+ *     CORS_ORIGIN=http://localhost:3000,https://tu-frontend.netlify.app
  */
 
-function getBaseUrl() {
-  if (typeof process !== "undefined") {
-    if (process.env.REACT_APP_API_URL) return process.env.REACT_APP_API_URL;
-    if (process.env.VITE_API_URL) return process.env.VITE_API_URL;
-  }
+const BASE = (process.env.REACT_APP_API_URL || "http://localhost:3001").replace(/\/+$/, "");
 
-  try {
-    if (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) {
-      return import.meta.env.VITE_API_URL;
-    }
-    if (typeof import.meta !== "undefined" && import.meta.env?.REACT_APP_API_URL) {
-      return import.meta.env.REACT_APP_API_URL;
-    }
-  } catch (_) {}
+console.log("API BASE:", BASE);
 
-  return "http://localhost:3001";
+// ── Token management ─────────────────────────────────────────────
+export const TOKEN_KEY = "rpglog_token";
+export const getToken = () => localStorage.getItem(TOKEN_KEY);
+export const setToken = (token) => localStorage.setItem(TOKEN_KEY, token);
+export const clearToken = () => localStorage.removeItem(TOKEN_KEY);
+
+// ── Helpers ──────────────────────────────────────────────────────
+function buildUrl(path) {
+  if (!path) return BASE;
+  return `${BASE}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
-const BASE = getBaseUrl();
-// ── Token management ─────────────────────────────────────────────
-export const TOKEN_KEY   = "rpglog_token";
-export const getToken    = ()      => localStorage.getItem(TOKEN_KEY);
-export const setToken    = (token) => localStorage.setItem(TOKEN_KEY, token);
-export const clearToken  = ()      => localStorage.removeItem(TOKEN_KEY);
+function isSuccessResponse(res, data) {
+  if (!res.ok) return false;
 
-// ── Base fetch con manejo de CORS y errores ──────────────────────
+  if (typeof data?.ok === "boolean") return data.ok;
+
+  return true;
+}
+
+// ── Base fetch con manejo de errores ─────────────────────────────
 async function apiFetch(path, options = {}) {
   const token = getToken();
+
   const headers = {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -49,96 +49,125 @@ async function apiFetch(path, options = {}) {
 
   let res;
   try {
-    res = await fetch(`${BASE}${path}`, { ...options, headers });
+    res = await fetch(buildUrl(path), {
+      ...options,
+      headers,
+    });
   } catch (err) {
-    // Error de red / CORS bloqueado por el navegador
-    const msg = err.message?.includes("Failed to fetch")
-      ? "No se pudo conectar al servidor. Verifica que el backend esté activo y que CORS_ORIGIN incluya este dominio."
-      : err.message;
+    const msg =
+      err?.message?.includes("Failed to fetch") ||
+      err?.message?.includes("NetworkError") ||
+      err?.message?.includes("ERR_CONNECTION_REFUSED")
+        ? `No se pudo conectar al servidor. BASE actual: ${BASE}`
+        : err?.message || "Error de red al conectar con el servidor.";
     throw new Error(msg);
   }
 
-  const data = await res.json().catch(() => ({}));
+  const contentType = res.headers.get("content-type") || "";
+  const isJson = contentType.includes("application/json");
 
-  if (!res.ok || !data.ok) {
-    // Si el backend responde 401, limpiar token y avisar a la app
-    if (res.status === 401) {
-      try { clearToken(); } catch (_) {}
-      try { window.dispatchEvent(new CustomEvent("rpglog:unauthorized")); } catch (_) {}
-    }
-    throw new Error(data.message || `Error ${res.status}`);
+  let data = {};
+  try {
+    data = isJson ? await res.json() : {};
+  } catch (_) {
+    data = {};
   }
+
+  if (!isSuccessResponse(res, data)) {
+    if (res.status === 401) {
+      try {
+        clearToken();
+      } catch (_) {}
+
+      try {
+        window.dispatchEvent(new CustomEvent("rpglog:unauthorized"));
+      } catch (_) {}
+    }
+
+    throw new Error(
+      data?.message ||
+        data?.error ||
+        data?.msg ||
+        `Error ${res.status}${res.statusText ? `: ${res.statusText}` : ""}`
+    );
+  }
+
   return data;
 }
 
 // ── Mapeo backend → frontend ─────────────────────────────────────
 const STAT_META = {
-  str: { name: "FUERZA",        icon: "🟥", color: "#e05252" },
-  res: { name: "RESISTENCIA",   icon: "🟦", color: "#5b8dd9" },
-  agi: { name: "AGILIDAD",      icon: "🟩", color: "#52c97a" },
-  int: { name: "INTELIGENCIA",  icon: "🟪", color: "#a855f7" },
-  cre: { name: "CREATIVIDAD",   icon: "🟨", color: "#f5c842" },
-  com: { name: "COMUNICACIÓN",  icon: "🟧", color: "#f5853a" },
+  str: { name: "FUERZA", icon: "🟥", color: "#e05252" },
+  res: { name: "RESISTENCIA", icon: "🟦", color: "#5b8dd9" },
+  agi: { name: "AGILIDAD", icon: "🟩", color: "#52c97a" },
+  int: { name: "INTELIGENCIA", icon: "🟪", color: "#a855f7" },
+  cre: { name: "CREATIVIDAD", icon: "🟨", color: "#f5c842" },
+  com: { name: "COMUNICACIÓN", icon: "🟧", color: "#f5853a" },
 };
 
 export function mapProfile(profile, user) {
   return {
-    name:   user?.username  ?? "Héroe",
+    name: user?.username ?? "Héroe",
     avatar: "🧙",
-    title:  profile?.equippedTitleId ? `"${profile.equippedTitleId}"` : '"Aventurero"',
-    level:  profile?.level          ?? 1,
-    xp:     profile?.xpCurrentLevel ?? 0,
-    xpMax:  profile?.xpNextLevel    ?? 300,
-    birthdate: user?.birthdate ? new Date(user.birthdate).toISOString().split("T")[0] : "",
+    title: profile?.equippedTitleId ? `"${profile.equippedTitleId}"` : '"Aventurero"',
+    level: profile?.level ?? 1,
+    xp: profile?.xpCurrentLevel ?? 0,
+    xpMax: profile?.xpNextLevel ?? 300,
+    birthdate: user?.birthdate
+      ? new Date(user.birthdate).toISOString().split("T")[0]
+      : "",
   };
 }
 
 export function mapStats(stats = []) {
   const statKeys = ["agi", "com", "cre", "int", "res", "str"];
-  const byKey = Object.fromEntries((stats || []).map(s => [s.statKey, s]));
-  return statKeys.map(key => {
+  const byKey = Object.fromEntries((stats || []).map((s) => [s.statKey, s]));
+
+  return statKeys.map((key) => {
     const meta = STAT_META[key] || {};
-    const s    = byKey[key] || {};
+    const s = byKey[key] || {};
+
     return {
-      id:    key,
-      name:  meta.name,
-      icon:  meta.icon,
+      id: key,
+      name: meta.name,
+      icon: meta.icon,
       color: meta.color,
-      lv:    s.level  ?? 1,
-      xp:    s.xp     ?? 0,
-      max:   s.xpMax  ?? 200,
+      lv: s.level ?? 1,
+      xp: s.xp ?? 0,
+      max: s.xpMax ?? 200,
     };
   });
 }
 
 export function mapQuest(q) {
   const firstStat = q.statRewards?.[0];
-  const statKey   = firstStat?.statKey || null;
-  const meta      = statKey ? (STAT_META[statKey] || {}) : {};
+  const statKey = firstStat?.statKey || null;
+  const meta = statKey ? STAT_META[statKey] || {} : {};
+
   return {
-    _id:   q._id,
-    id:    q._id,
-    name:  q.title,
-    desc:  q.description || "",
-    stat:  meta.name  || "GENERAL",
-    icon:  meta.icon  || "⚔️",
+    _id: q._id,
+    id: q._id,
+    name: q.title,
+    desc: q.description || "",
+    stat: meta.name || "GENERAL",
+    icon: meta.icon || "⚔️",
     color: meta.color || "#e8e0d0",
-    xp:        q.globalXpReward ?? q.xpReward ?? 10,
-    coins:     q.coinReward ?? 0,
-    progress:  0,
-    total:     1,
-    unit:      "vez",
-    done:      q.completed || false,
-    type:      q.type,
-    dayKey:    q.dayKey || null,
-    photoEvidenceEnabled:  q.photoEvidenceEnabled   || false,
-    photoBonusApplied:     q.photoBonusApplied       || false,
-    photoBonusXp:          q.photoBonusXp            || 0,
-    photoBonusCoins:       q.photoBonusCoins         || 0,
+    xp: q.globalXpReward ?? q.xpReward ?? 10,
+    coins: q.coinReward ?? 0,
+    progress: 0,
+    total: 1,
+    unit: "vez",
+    done: q.completed || false,
+    type: q.type,
+    dayKey: q.dayKey || null,
+    photoEvidenceEnabled: q.photoEvidenceEnabled || false,
+    photoBonusApplied: q.photoBonusApplied || false,
+    photoBonusXp: q.photoBonusXp || 0,
+    photoBonusCoins: q.photoBonusCoins || 0,
     locationEvidenceEnabled: q.locationEvidenceEnabled || false,
-    locationBonusApplied:    q.locationBonusApplied    || false,
-    locationBonusXp:         q.locationBonusXp         || 0,
-    locationBonusCoins:      q.locationBonusCoins       || 0,
+    locationBonusApplied: q.locationBonusApplied || false,
+    locationBonusXp: q.locationBonusXp || 0,
+    locationBonusCoins: q.locationBonusCoins || 0,
   };
 }
 
@@ -149,18 +178,24 @@ export const authApi = {
   async register({ username, email, password }) {
     const data = await apiFetch("/api/auth/register", {
       method: "POST",
-      body:   JSON.stringify({ username, email, password }),
+      body: JSON.stringify({ username, email, password }),
     });
-    if (data.token) setToken(data.token);
+
+    const token = data?.token || data?.data?.token;
+    if (token) setToken(token);
+
     return data;
   },
 
   async login({ email, password }) {
     const data = await apiFetch("/api/auth/login", {
       method: "POST",
-      body:   JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password }),
     });
-    if (data.token) setToken(data.token);
+
+    const token = data?.token || data?.data?.token;
+    if (token) setToken(token);
+
     return data;
   },
 
@@ -222,17 +257,17 @@ export const questsApi = {
   async submitPhotoEvidence(questId) {
     return apiFetch(`/api/quests/${questId}/evidence/photo`, {
       method: "POST",
-      body:   JSON.stringify({ photoTaken: true }),
+      body: JSON.stringify({ photoTaken: true }),
     });
   },
 
   async submitLocationEvidence(questId, coords) {
     return apiFetch(`/api/quests/${questId}/evidence/location`, {
       method: "POST",
-      body:   JSON.stringify({
-        latitude:   coords.latitude,
-        longitude:  coords.longitude,
-        accuracy:   coords.accuracy   || null,
+      body: JSON.stringify({
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+        accuracy: coords.accuracy || null,
         capturedAt: coords.capturedAt || new Date().toISOString(),
       }),
     });
@@ -260,7 +295,7 @@ export const questsApi = {
   }) {
     return apiFetch("/api/quests/custom", {
       method: "POST",
-      body:   JSON.stringify({
+      body: JSON.stringify({
         title,
         description,
         xpReward,
