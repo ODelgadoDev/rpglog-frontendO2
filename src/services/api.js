@@ -13,6 +13,8 @@
  *     CORS_ORIGIN=http://localhost:3000,https://tu-frontend.netlify.app
  */
 
+import { TITLES_DATA } from "../data/shop";
+
 const BASE = (process.env.REACT_APP_API_URL || "http://localhost:3001").replace(/\/+$/, "");
 
 console.log("API BASE:", BASE);
@@ -106,10 +108,12 @@ const STAT_META = {
 };
 
 export function mapProfile(profile, user) {
+  const equipped = TITLES_DATA.find((t) => t.id === profile?.equippedTitleId) || TITLES_DATA[0];
+
   return {
     name: user?.username ?? "Héroe",
-    avatar: "🧙",
-    title: profile?.equippedTitleId ? `"${profile.equippedTitleId}"` : '"Aventurero"',
+    avatar: user?.avatar || "🧙",
+    title: equipped?.preview || '"Aventurero"',
     level: profile?.level ?? 1,
     xp: profile?.xpCurrentLevel ?? 0,
     xpMax: profile?.xpNextLevel ?? 300,
@@ -175,10 +179,10 @@ export function mapQuest(q) {
 // Auth API
 // ════════════════════════════════════════════════════════════════
 export const authApi = {
-  async register({ username, email, password }) {
+  async register({ username, email, password, birthdate, avatar }) {
     const data = await apiFetch("/api/auth/register", {
       method: "POST",
-      body: JSON.stringify({ username, email, password }),
+      body: JSON.stringify({ username, email, password, birthdate, avatar }),
     });
 
     const token = data?.token || data?.data?.token;
@@ -227,6 +231,27 @@ export const progressApi = {
     return apiFetch("/api/progress/game-reward", {
       method: "POST",
       body: JSON.stringify({ xp, coins, statKey }),
+    });
+  },
+
+  async buyTitle({ titleId, price }) {
+    return apiFetch("/api/progress/buy-title", {
+      method: "POST",
+      body: JSON.stringify({ titleId, price }),
+    });
+  },
+
+  async equipTitle({ titleId }) {
+    return apiFetch("/api/progress/equip-title", {
+      method: "POST",
+      body: JSON.stringify({ titleId }),
+    });
+  },
+
+  async buyCustomSlot({ slotIdx, price }) {
+    return apiFetch("/api/progress/buy-custom-slot", {
+      method: "POST",
+      body: JSON.stringify({ slotIdx, price }),
     });
   },
 
@@ -284,6 +309,9 @@ export const questsApi = {
     globalXpReward,
     coinReward,
     statRewards,
+    slotIdx,
+    durationMs,
+    startedAt,
     photoEvidenceEnabled,
     locationEvidenceEnabled,
     photoBonusXp,
@@ -302,6 +330,9 @@ export const questsApi = {
         globalXpReward,
         coinReward,
         statRewards,
+        slotIdx,
+        durationMs,
+        startedAt,
         photoEvidenceEnabled,
         locationEvidenceEnabled,
         photoBonusXp,

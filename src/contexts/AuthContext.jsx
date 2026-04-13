@@ -62,15 +62,15 @@ export function AuthProvider({ children }) {
     return data;
   }, []);
 
-  const register = useCallback(async ({ username, email, password }) => {
-    const data = await authApi.register({ username, email, password });
-    if (data?.user) {
-      setUser(data.user);
-      setProfile(data.profile || null);
-      setStats(data.stats || []);
-    }
-    return data;
-  }, []);
+ const register = useCallback(async ({ username, email, password, birthdate, avatar }) => {
+  const data = await authApi.register({ username, email, password, birthdate, avatar });
+  if (data?.user) {
+    setUser(data.user);
+    setProfile(data.profile || null);
+    setStats(data.stats || []);
+  }
+  return data;
+}, []);
 
   const logout = useCallback(() => {
     try { authApi.logout(); } catch (_) {}
